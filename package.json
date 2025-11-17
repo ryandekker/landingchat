@@ -1,0 +1,31 @@
+{
+  "name": "landingchat",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Conversational intake landing page with LLM orchestration",
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev:worker": "pnpm --filter @landingchat/worker dev",
+    "dev:frontend": "pnpm --filter @landingchat/frontend dev",
+    "deploy:worker": "pnpm --filter @landingchat/worker deploy",
+    "deploy:frontend": "pnpm --filter @landingchat/frontend deploy",
+    "typecheck": "pnpm -r typecheck",
+    "clean": "pnpm -r clean && rm -rf node_modules"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "llm",
+    "chatbot",
+    "intake"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "@landingchat/worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker backend for LandingChat",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "tsc",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "keywords": ["cloudflare", "worker", "backend"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@landingchat/shared": "workspace:*",
+    "@landingchat/config": "workspace:*",
+    "@aws-sdk/client-dynamodb": "^3.490.0",
+    "@aws-sdk/lib-dynamodb": "^3.490.0",
+    "@aws-sdk/signature-v4": "^3.490.0",
+    "@opensearch-project/opensearch": "^2.5.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231218.0",
+    "typescript": "^5.3.3",
+    "wrangler": "^3.22.1"
+  }
+}
