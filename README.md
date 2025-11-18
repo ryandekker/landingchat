@@ -64,63 +64,94 @@ landingchat/
 
 ## Quick Start
 
-### Prerequisites
+### 🚀 Automated Setup (Recommended)
 
+We provide scripts that automate the entire setup process:
+
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd landingchat
+
+# Run the automated setup script
+./scripts/setup.sh
+```
+
+This single script will:
+- ✅ Check prerequisites
+- ✅ Install dependencies
+- ✅ Create AWS infrastructure (DynamoDB, OpenSearch, IAM)
+- ✅ Seed sample apps
+- ✅ Configure environment variables
+- ✅ Build packages
+
+**Then start development:**
+```bash
+# Terminal 1 - Backend
+cd packages/worker && pnpm dev
+
+# Terminal 2 - Frontend
+cd packages/frontend && pnpm dev
+
+# Open http://localhost:5173
+```
+
+**Estimated time:** 5-10 minutes (+ 15-20 minutes if creating OpenSearch)
+
+See [scripts/README.md](./scripts/README.md) for details on individual scripts.
+
+---
+
+### 📝 Manual Setup
+
+If you prefer manual setup:
+
+**Prerequisites:**
 - Node.js 18+
 - pnpm (`npm install -g pnpm`)
 - AWS Account (for DynamoDB and OpenSearch)
 - Cloudflare Account
 - Anthropic API Key
 
-### Installation
+**Installation:**
 
-1. **Clone the repository:**
+1. **Clone and install:**
    ```bash
    git clone <your-repo-url>
    cd landingchat
-   ```
-
-2. **Install dependencies:**
-   ```bash
    pnpm install
    ```
 
-3. **Set up infrastructure:**
+2. **Set up infrastructure:**
 
    Follow the [Infrastructure Setup Guide](./docs/setup/01-infrastructure.md) to create:
    - DynamoDB tables
    - OpenSearch domain
    - Seed sample apps
 
-4. **Configure environment variables:**
+3. **Configure environment:**
 
-   **Backend:**
    ```bash
    cd packages/worker
    cp .dev.vars.example .dev.vars
-   # Edit .dev.vars with your credentials
-   ```
+   # Edit with your credentials
 
-   **Frontend:**
-   ```bash
-   cd packages/frontend
+   cd ../frontend
    cp .env.example .env
-   # Edit .env (default is fine for local dev)
+   # Edit API URL (default is fine for local dev)
    ```
 
-5. **Start development servers:**
+4. **Start development:**
 
    ```bash
    # Terminal 1 - Backend
-   cd packages/worker
-   pnpm dev
+   cd packages/worker && pnpm dev
 
    # Terminal 2 - Frontend
-   cd packages/frontend
-   pnpm dev
+   cd packages/frontend && pnpm dev
    ```
 
-6. **Open browser:**
+5. **Open browser:**
 
    Navigate to `http://localhost:5173` and start chatting!
 
@@ -219,7 +250,32 @@ pnpm deploy   # Deploy to Cloudflare Pages
 
 ## Deployment
 
-### Deploy Backend
+### 🚀 Automated Deployment (Recommended)
+
+Deploy to Cloudflare with one command:
+
+```bash
+./scripts/deploy.sh
+```
+
+This interactive script will:
+- ✅ Check Cloudflare authentication
+- ✅ Set production secrets (can use .dev.vars)
+- ✅ Build and deploy worker
+- ✅ Build and deploy frontend
+- ✅ Test deployment health
+- ✅ Provide deployment URLs
+
+**Options:**
+1. Deploy worker only
+2. Deploy frontend only
+3. Deploy both
+
+---
+
+### 📝 Manual Deployment
+
+**Deploy Backend:**
 
 ```bash
 cd packages/worker
@@ -236,7 +292,7 @@ pnpm deploy
 
 See [Backend Deployment Guide](./docs/setup/02-backend-deployment.md) for details.
 
-### Deploy Frontend
+**Deploy Frontend:**
 
 ```bash
 cd packages/frontend
