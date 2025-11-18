@@ -26,13 +26,20 @@ import {
  * Create DynamoDB client from environment
  */
 export function createDynamoDBClient(env: WorkerEnv): DynamoDBDocumentClient {
-  const client = new DynamoDBClient({
+  const config: any = {
     region: env.AWS_REGION,
     credentials: {
       accessKeyId: env.AWS_ACCESS_KEY_ID,
       secretAccessKey: env.AWS_SECRET_ACCESS_KEY
     }
-  });
+  };
+
+  // Support for local DynamoDB (e.g., DynamoDB Local)
+  if (env.DYNAMODB_ENDPOINT) {
+    config.endpoint = env.DYNAMODB_ENDPOINT;
+  }
+
+  const client = new DynamoDBClient(config);
 
   return DynamoDBDocumentClient.from(client, {
     marshallOptions: {

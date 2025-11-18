@@ -1,0 +1,17 @@
+node_modules
+dist
+.git
+.gitignore
+*.log
+.env
+.env.*
+.dev.vars
+*.md
+docs/
+scripts/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+pnpm-lock.yaml

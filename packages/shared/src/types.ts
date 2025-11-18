@@ -242,6 +242,7 @@ export interface WorkerEnv {
   AWS_SECRET_ACCESS_KEY: string;
   DDB_TABLE_SESSIONS: string;
   DDB_TABLE_MESSAGES: string;
+  DYNAMODB_ENDPOINT?: string; // For local testing (e.g., http://localhost:8000)
 
   // Prompt Configuration
   PROMPT_INTERVIEWER_ID?: string;

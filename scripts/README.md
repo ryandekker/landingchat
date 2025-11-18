@@ -4,13 +4,25 @@ This directory contains automation scripts to help you set up and deploy Landing
 
 ## Quick Start
 
-For a complete automated setup, run:
+### Option 1: Local Testing (No AWS Required)
+
+For quick local testing with Docker:
+
+```bash
+./scripts/setup-local.sh
+```
+
+This sets up everything locally using Docker - no AWS account needed!
+
+### Option 2: Full AWS Setup
+
+For complete setup with AWS infrastructure:
 
 ```bash
 ./scripts/setup.sh
 ```
 
-This master script will guide you through the entire setup process.
+This master script will guide you through the entire setup process with real AWS services.
 
 ## Individual Scripts
 
@@ -32,6 +44,72 @@ This master script will guide you through the entire setup process.
 ```
 
 **When to use:** First time setup or complete reset.
+
+---
+
+### 🐳 setup-local.sh (Local Testing)
+
+**Purpose:** Set up complete local testing environment using Docker - no AWS required!
+
+**What it does:**
+- Checks prerequisites (Node.js, pnpm, Docker)
+- Installs project dependencies
+- Starts local DynamoDB (via Docker)
+- Starts local OpenSearch (via Docker)
+- Creates local DynamoDB tables
+- Seeds local OpenSearch with sample apps
+- Configures environment variables for local development
+- Builds all packages
+
+**Prerequisites:**
+- Docker and docker-compose installed
+- Node.js 18+ and pnpm installed
+- Anthropic API key (for LLM functionality)
+
+**Usage:**
+```bash
+./scripts/setup-local.sh
+```
+
+**What you get:**
+- DynamoDB Local at `http://localhost:8000`
+- OpenSearch Local at `https://localhost:9200`
+  - Username: `admin`
+  - Password: `Admin123!`
+- Pre-configured `.dev.vars` and `.env` files
+- 3 sample apps seeded in catalog
+
+**Managing local services:**
+```bash
+# Start services
+./scripts/local-services.sh start
+
+# Stop services
+./scripts/local-services.sh stop
+
+# View status
+./scripts/local-services.sh status
+
+# View logs
+./scripts/local-services.sh logs
+
+# Reset everything
+./scripts/local-services.sh reset
+```
+
+**Advantages:**
+- ✅ No AWS account needed
+- ✅ No monthly costs
+- ✅ Fast setup (2-3 minutes)
+- ✅ Full feature parity for testing
+- ✅ Easy to reset and start fresh
+
+**Limitations:**
+- ⚠️ Data is ephemeral (lost on container restart unless using volumes)
+- ⚠️ Not suitable for production
+- ⚠️ Still requires Anthropic API key for LLM
+
+**Estimated time:** 2-3 minutes
 
 ---
 
@@ -193,9 +271,91 @@ Edit the `BULK_DATA` variable in the script to add/modify apps.
 
 ---
 
+### 🔧 local-services.sh (Service Manager)
+
+**Purpose:** Manage local Docker services for testing.
+
+**Usage:**
+```bash
+./scripts/local-services.sh {command}
+```
+
+**Commands:**
+
+```bash
+# Start all services
+./scripts/local-services.sh start
+
+# Stop all services
+./scripts/local-services.sh stop
+
+# Restart all services
+./scripts/local-services.sh restart
+
+# Show service status and health
+./scripts/local-services.sh status
+
+# View live logs (Ctrl+C to exit)
+./scripts/local-services.sh logs
+
+# Reset everything (deletes all data)
+./scripts/local-services.sh reset
+
+# List DynamoDB tables
+./scripts/local-services.sh tables
+
+# Query a DynamoDB table
+./scripts/local-services.sh query landingchat-sessions-local
+
+# Search OpenSearch catalog
+./scripts/local-services.sh search invoice
+```
+
+**Examples:**
+
+```bash
+# Morning routine - start services
+./scripts/local-services.sh start
+
+# Check everything is running
+./scripts/local-services.sh status
+
+# View what's in DynamoDB
+./scripts/local-services.sh tables
+./scripts/local-services.sh query landingchat-sessions-local
+
+# Search for apps
+./scripts/local-services.sh search crm
+
+# Evening routine - stop services
+./scripts/local-services.sh stop
+```
+
+**When to use:**
+- Daily development workflow
+- Debugging local services
+- Inspecting local data
+- Resetting test environment
+
+---
+
 ## Common Workflows
 
-### First Time Setup
+### Local Testing (Quickest)
+
+```bash
+# 1. Set up local environment with Docker
+./scripts/setup-local.sh
+
+# 2. Start development (in separate terminals)
+cd packages/worker && pnpm dev
+cd packages/frontend && pnpm dev
+
+# 3. When done, stop services
+./scripts/local-services.sh stop
+```
+
+### First Time Setup (AWS)
 
 ```bash
 # 1. Run master setup script
