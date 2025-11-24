@@ -4,7 +4,10 @@
       "Bash(pnpm build:*)",
       "Bash(pnpm dev)",
       "Bash(lsof:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker compose:*)"
     ],
     "deny": [],
     "ask": []

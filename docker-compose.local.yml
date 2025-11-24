@@ -15,9 +15,7 @@ services:
     container_name: landingchat-opensearch-local
     environment:
       - discovery.type=single-node
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Admin123!
-      - plugins.security.disabled=false
-      - DISABLE_INSTALL_DEMO_CONFIG=false
+      - DISABLE_SECURITY_PLUGIN=true
     ports:
       - "9200:9200"
       - "9600:9600"

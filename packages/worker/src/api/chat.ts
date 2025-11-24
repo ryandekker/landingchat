@@ -90,6 +90,10 @@ export async function handleChatRequest(
       body.message
     );
 
+    // Log LLM output for debugging
+    console.log('[CHAT] LLM Output - search_queries:', JSON.stringify(llmOutput.search_queries));
+    console.log('[CHAT] LLM Output - ui_directives:', JSON.stringify(llmOutput.ui_directives));
+
     // Merge LLM delta into profile
     const updatedProfile = mergeProfileDelta(profile, llmOutput);
 
@@ -101,6 +105,7 @@ export async function handleChatRequest(
     // Search apps if queries provided
     let searchRecommendations: SearchResultSummary[] = [];
     if (llmOutput.search_queries && llmOutput.search_queries.length > 0) {
+      console.log('[CHAT] Searching with queries:', llmOutput.search_queries);
       searchRecommendations = await searchApps(
         openSearchClient,
         env,
@@ -108,8 +113,13 @@ export async function handleChatRequest(
         llmOutput.search_queries
       );
 
+      console.log('[CHAT] Search returned', searchRecommendations.length, 'results');
+      console.log('[CHAT] Search results:', JSON.stringify(searchRecommendations));
+
       // Store recommended app IDs in profile
       updatedProfile.recommended_apps = searchRecommendations.map(r => r.id);
+    } else {
+      console.log('[CHAT] No search_queries provided by LLM');
     }
 
     // Save updated profile
@@ -129,13 +139,19 @@ export async function handleChatRequest(
     await appendMessage(dynamoClient, env, assistantMessage);
 
     // Build response
+    const uiDirectives = normalizeUiDirectives(llmOutput, conversationComplete);
+
+    console.log('[CHAT] Final uiDirectives:', JSON.stringify(uiDirectives));
+    console.log('[CHAT] Final searchRecommendations count:', searchRecommendations.length);
+    console.log('[CHAT] conversationComplete:', conversationComplete);
+
     const response: ChatResponse = {
       sessionId,
       assistantMessage: llmOutput.assistant_message,
       profileDelta: extractProfileDelta(llmOutput),
       fullProfile: updatedProfile,
       searchRecommendations,
-      uiDirectives: normalizeUiDirectives(llmOutput, conversationComplete)
+      uiDirectives
     };
 
     return jsonResponse(request, env, response);
