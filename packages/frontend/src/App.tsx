@@ -28,15 +28,17 @@ function App() {
   } = useChat(sessionId);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initialMessageSent = useRef(false);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Send initial message on mount
+  // Send initial message on mount (only once)
   useEffect(() => {
-    if (messages.length === 0) {
+    if (messages.length === 0 && !initialMessageSent.current) {
+      initialMessageSent.current = true;
       sendMessage('Hello');
     }
   }, []);

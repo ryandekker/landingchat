@@ -2,7 +2,7 @@
  * Chat hook using React Query
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import type {
   UserProfile,
@@ -25,17 +25,50 @@ interface UseChatState {
   showRecommendations: boolean;
 }
 
+const MESSAGES_KEY = 'landingchat_messages';
+
+/**
+ * Load messages from localStorage for a session
+ */
+function loadMessages(sessionId: string): ChatMessage[] {
+  try {
+    const stored = localStorage.getItem(`${MESSAGES_KEY}_${sessionId}`);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error('Failed to load messages from localStorage:', e);
+  }
+  return [];
+}
+
+/**
+ * Save messages to localStorage for a session
+ */
+function saveMessages(sessionId: string, messages: ChatMessage[]) {
+  try {
+    localStorage.setItem(`${MESSAGES_KEY}_${sessionId}`, JSON.stringify(messages));
+  } catch (e) {
+    console.error('Failed to save messages to localStorage:', e);
+  }
+}
+
 /**
  * Hook for managing chat state and API calls
  */
 export function useChat(sessionId: string) {
-  const [state, setState] = useState<UseChatState>({
-    messages: [],
+  const [state, setState] = useState<UseChatState>(() => ({
+    messages: loadMessages(sessionId),
     profile: null,
     recommendations: [],
     isComplete: false,
     showRecommendations: false
-  });
+  }));
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    saveMessages(sessionId, state.messages);
+  }, [sessionId, state.messages]);
 
   const chatMutation = useMutation({
     mutationFn: (message: string) =>
