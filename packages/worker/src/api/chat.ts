@@ -7,7 +7,7 @@ import type {
   ChatResponse,
   WorkerEnv,
   ChatMessage,
-  UserProfile
+  SearchResultSummary
 } from '@landingchat/shared';
 import {
   generateSessionId,
@@ -16,8 +16,6 @@ import {
   isConversationComplete
 } from '@landingchat/shared';
 import { getDefaultInterviewerConfig } from '@landingchat/config';
-import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import { Client as OpenSearchClient } from '@opensearch-project/opensearch';
 
 import {
   createDynamoDBClient,
@@ -101,7 +99,7 @@ export async function handleChatRequest(
     );
 
     // Search apps if queries provided
-    let searchRecommendations = [];
+    let searchRecommendations: SearchResultSummary[] = [];
     if (llmOutput.search_queries && llmOutput.search_queries.length > 0) {
       searchRecommendations = await searchApps(
         openSearchClient,

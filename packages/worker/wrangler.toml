@@ -1,6 +1,7 @@
 name = "landingchat-worker"
 main = "src/index.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
 
 # Use the Workers Paid plan for higher limits
 # workers_dev = true
@@ -34,9 +35,3 @@ compatibility_date = "2024-01-01"
 
 [build]
 command = "pnpm build"
-
-# Enable Node.js compatibility for AWS SDK
-# compatibility_flags = ["nodejs_compat"]
-
-# Or use the compatibility flag in the newer format:
-# node_compat = true

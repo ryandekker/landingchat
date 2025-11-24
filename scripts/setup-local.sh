@@ -161,7 +161,7 @@ echo -e "${YELLOW}Step 3: Starting local services...${NC}"
 echo ""
 
 echo "Starting DynamoDB and OpenSearch..."
-docker-compose -f docker-compose.local.yml up -d
+docker compose -f docker-compose.local.yml up -d
 
 echo "Waiting for services to be ready..."
 echo -n "Waiting for DynamoDB..."

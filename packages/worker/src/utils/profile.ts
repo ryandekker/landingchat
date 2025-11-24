@@ -4,8 +4,7 @@
 
 import type {
   UserProfile,
-  LlmOrchestratorOutput,
-  RadarDimension
+  LlmOrchestratorOutput
 } from '@landingchat/shared';
 import { mergeRadarDimensions, getCurrentTimestamp } from '@landingchat/shared';
 

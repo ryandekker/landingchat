@@ -13,11 +13,9 @@ import type {
   SessionId,
   UserProfile,
   ChatMessage,
-  ConversationSummary,
   WorkerEnv
 } from '@landingchat/shared';
 import {
-  generateSessionId,
   getCurrentTimestamp,
   createMessageSortKey
 } from '@landingchat/shared';
