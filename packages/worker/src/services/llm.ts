@@ -1,5 +1,5 @@
 /**
- * LLM service for calling Anthropic's Claude API
+ * LLM service for calling Google's Gemini API
  */
 
 import type {
@@ -11,32 +11,36 @@ import type {
 } from '@landingchat/shared';
 import { buildInterviewerPrompt } from '@landingchat/config';
 
-interface AnthropicMessage {
-  role: 'user' | 'assistant';
-  content: string;
+interface GeminiMessage {
+  role: 'user' | 'model';
+  parts: Array<{ text: string }>;
 }
 
-interface AnthropicRequest {
-  model: string;
-  max_tokens: number;
-  messages: AnthropicMessage[];
-  system?: string;
-  temperature?: number;
+interface GeminiRequest {
+  contents: GeminiMessage[];
+  systemInstruction?: {
+    parts: Array<{ text: string }>;
+  };
+  generationConfig?: {
+    temperature?: number;
+    maxOutputTokens?: number;
+    topP?: number;
+    topK?: number;
+  };
 }
 
-interface AnthropicResponse {
-  id: string;
-  type: string;
-  role: string;
-  content: Array<{
-    type: string;
-    text: string;
+interface GeminiResponse {
+  candidates: Array<{
+    content: {
+      parts: Array<{ text: string }>;
+      role: string;
+    };
+    finishReason: string;
   }>;
-  model: string;
-  stop_reason: string;
-  usage: {
-    input_tokens: number;
-    output_tokens: number;
+  usageMetadata?: {
+    promptTokenCount: number;
+    candidatesTokenCount: number;
+    totalTokenCount: number;
   };
 }
 
@@ -64,27 +68,27 @@ function buildContextMessage(
 }
 
 /**
- * Call Anthropic API
+ * Call Gemini API
  */
-async function callAnthropicAPI(
+async function callGeminiAPI(
   env: WorkerEnv,
-  request: AnthropicRequest
-): Promise<AnthropicResponse> {
-  const apiUrl = env.LLM_API_URL || 'https://api.anthropic.com/v1/messages';
+  model: string,
+  request: GeminiRequest
+): Promise<GeminiResponse> {
+  const baseUrl = env.LLM_API_URL || 'https://generativelanguage.googleapis.com/v1beta';
+  const apiUrl = `${baseUrl}/models/${model}:generateContent?key=${env.LLM_API_KEY}`;
 
   const response = await fetch(apiUrl, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': env.LLM_API_KEY,
-      'anthropic-version': '2023-06-01'
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify(request)
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Anthropic API error: ${response.status} - ${errorText}`);
+    throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
   }
 
   return await response.json();
@@ -97,7 +101,7 @@ async function parseLlmResponse(
   env: WorkerEnv,
   response: string,
   systemPrompt: string,
-  messages: AnthropicMessage[]
+  messages: GeminiMessage[]
 ): Promise<LlmOrchestratorOutput> {
   try {
     // Try to extract JSON from response (in case there's extra text)
@@ -111,27 +115,30 @@ async function parseLlmResponse(
     console.error('Failed to parse LLM response, retrying with fix instruction:', error);
 
     // Retry with instruction to fix the JSON
-    const retryMessages: AnthropicMessage[] = [
+    const retryMessages: GeminiMessage[] = [
       ...messages,
       {
-        role: 'assistant',
-        content: response
+        role: 'model',
+        parts: [{ text: response }]
       },
       {
         role: 'user',
-        content: 'The JSON you provided was malformed. Please provide ONLY valid JSON matching the schema, with no extra text.'
+        parts: [{ text: 'The JSON you provided was malformed. Please provide ONLY valid JSON matching the schema, with no extra text.' }]
       }
     ];
 
-    const retryResponse = await callAnthropicAPI(env, {
-      model: env.LLM_BASE_MODEL,
-      max_tokens: 2048,
-      messages: retryMessages,
-      system: systemPrompt,
-      temperature: 0
+    const retryResponse = await callGeminiAPI(env, env.LLM_BASE_MODEL, {
+      contents: retryMessages,
+      systemInstruction: {
+        parts: [{ text: systemPrompt }]
+      },
+      generationConfig: {
+        temperature: 0,
+        maxOutputTokens: 2048
+      }
     });
 
-    const retryText = retryResponse.content[0].text;
+    const retryText = retryResponse.candidates[0].content.parts[0].text;
     const retryJsonMatch = retryText.match(/\{[\s\S]*\}/);
 
     if (!retryJsonMatch) {
@@ -159,31 +166,34 @@ export async function generateNextTurn(
   const contextMessage = buildContextMessage(profile, recentMessages);
 
   // Build messages array
-  const messages: AnthropicMessage[] = [
+  const messages: GeminiMessage[] = [
     {
       role: 'user',
-      content: contextMessage
+      parts: [{ text: contextMessage }]
     },
     {
-      role: 'assistant',
-      content: 'I understand the current context. I will now respond to the user\'s message with valid JSON following the schema.'
+      role: 'model',
+      parts: [{ text: 'I understand the current context. I will now respond to the user\'s message with valid JSON following the schema.' }]
     },
     {
       role: 'user',
-      content: `User's message: ${userMessage}\n\nRespond with ONLY valid JSON matching the schema defined in the system prompt.`
+      parts: [{ text: `User's message: ${userMessage}\n\nRespond with ONLY valid JSON matching the schema defined in the system prompt.` }]
     }
   ];
 
   // Call the API
-  const response = await callAnthropicAPI(env, {
-    model: env.LLM_BASE_MODEL,
-    max_tokens: 2048,
-    messages,
-    system: systemPrompt,
-    temperature: 0.7
+  const response = await callGeminiAPI(env, env.LLM_BASE_MODEL, {
+    contents: messages,
+    systemInstruction: {
+      parts: [{ text: systemPrompt }]
+    },
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 2048
+    }
   });
 
-  const responseText = response.content[0].text;
+  const responseText = response.candidates[0].content.parts[0].text;
 
   // Parse and validate the response
   return await parseLlmResponse(env, responseText, systemPrompt, messages);
@@ -200,17 +210,18 @@ export async function summarizeConversation(
     .map(msg => `${msg.role}: ${msg.content}`)
     .join('\n\n');
 
-  const response = await callAnthropicAPI(env, {
-    model: env.LLM_HEAVY_MODEL,
-    max_tokens: 1024,
-    messages: [
+  const response = await callGeminiAPI(env, env.LLM_HEAVY_MODEL, {
+    contents: [
       {
         role: 'user',
-        content: `Summarize this conversation in 2-3 paragraphs, focusing on what we learned about the user's needs:\n\n${conversationText}`
+        parts: [{ text: `Summarize this conversation in 2-3 paragraphs, focusing on what we learned about the user's needs:\n\n${conversationText}` }]
       }
     ],
-    temperature: 0.3
+    generationConfig: {
+      temperature: 0.3,
+      maxOutputTokens: 1024
+    }
   });
 
-  return response.content[0].text;
+  return response.candidates[0].content.parts[0].text;
 }

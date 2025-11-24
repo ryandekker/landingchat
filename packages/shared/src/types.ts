@@ -228,7 +228,7 @@ export interface WorkerEnv {
   LLM_API_KEY: string;
   LLM_BASE_MODEL: string;
   LLM_HEAVY_MODEL: string;
-  LLM_API_URL?: string; // e.g., 'https://api.anthropic.com/v1/messages'
+  LLM_API_URL?: string; // e.g., 'https://generativelanguage.googleapis.com/v1beta'
 
   // OpenSearch Configuration
   OPENSEARCH_URL: string;
