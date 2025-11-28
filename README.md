@@ -32,7 +32,7 @@ LandingChat is a modern, serverless chat application that interviews users about
        │
        ├──────→ DynamoDB (Sessions + Messages)
        ├──────→ OpenSearch (App Catalog)
-       └──────→ Anthropic Claude (LLM)
+       └──────→ Google Gemini (LLM)
 ```
 
 ## Tech Stack
@@ -41,7 +41,7 @@ LandingChat is a modern, serverless chat application that interviews users about
 - **Backend:** Cloudflare Workers + TypeScript
 - **Database:** AWS DynamoDB
 - **Search:** AWS OpenSearch Service
-- **LLM:** Anthropic Claude (Haiku + Sonnet)
+- **LLM:** Google Gemini (2.0 Flash + 1.5 Pro)
 - **Deployment:** Cloudflare Pages + Workers
 
 ## Project Structure
@@ -64,9 +64,43 @@ landingchat/
 
 ## Quick Start
 
-### 🚀 Automated Setup (Recommended)
+### 🐳 Local Development (Quickest - No AWS Required)
 
-We provide scripts that automate the entire setup process:
+Get up and running in minutes using Docker for all dependencies:
+
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd landingchat
+
+# Run local setup (uses Docker for DynamoDB and OpenSearch)
+./scripts/setup-local.sh
+```
+
+This will:
+- ✅ Start DynamoDB Local and OpenSearch in Docker
+- ✅ Create tables and seed sample apps
+- ✅ Configure environment for Gemini API
+- ✅ Build all packages
+
+**Then start development:**
+```bash
+# Terminal 1 - Backend
+cd packages/worker && pnpm dev
+
+# Terminal 2 - Frontend
+cd packages/frontend && pnpm dev
+
+# Open http://localhost:5173
+```
+
+**Stop services:** `docker compose -f docker-compose.local.yml down`
+
+---
+
+### 🚀 Full AWS Setup
+
+For production-like environment with AWS infrastructure:
 
 ```bash
 # Clone the repository
@@ -111,7 +145,7 @@ If you prefer manual setup:
 - pnpm (`npm install -g pnpm`)
 - AWS Account (for DynamoDB and OpenSearch)
 - Cloudflare Account
-- Anthropic API Key
+- Google Gemini API Key (https://aistudio.google.com/app/apikey)
 
 **Installation:**
 
@@ -408,10 +442,10 @@ curl -XPOST "https://your-opensearch-endpoint/apps_catalog/_doc" \
 Edit `packages/worker/.dev.vars`:
 
 ```bash
-LLM_BASE_MODEL=claude-3-opus-20240229  # Use Opus instead of Haiku
+LLM_BASE_MODEL=gemini-1.5-pro  # Use Pro instead of Flash
 ```
 
-Note: Opus is more expensive but higher quality.
+Note: gemini-1.5-pro is more capable but slower than gemini-2.0-flash.
 
 ### Add New Profile Attribute
 
@@ -444,8 +478,8 @@ Note: Opus is more expensive but higher quality.
 - Verify CORS is configured correctly
 
 **No LLM responses:**
-- Verify Anthropic API key is valid
-- Check you have API credits
+- Verify Gemini API key is valid
+- Check your API quota at https://aistudio.google.com/
 - Review worker logs: `wrangler tail`
 
 **OpenSearch errors:**
@@ -461,7 +495,7 @@ See [Getting Started Guide](./docs/setup/04-getting-started.md) for more trouble
 - DynamoDB: Free tier (likely $0)
 - OpenSearch: ~$35/month (t3.small)
 - Cloudflare: Free tier
-- Anthropic: ~$0.25 per 1M tokens (Haiku)
+- Gemini: Free tier available, or ~$0.075 per 1M tokens (Flash)
 
 **Production:**
 - Scale OpenSearch to t3.medium+ (~$70-140/month)
@@ -489,7 +523,7 @@ MIT
 ## Acknowledgments
 
 Built with:
-- [Anthropic Claude](https://www.anthropic.com/)
+- [Google Gemini](https://ai.google.dev/)
 - [Cloudflare Workers](https://workers.cloudflare.com/)
 - [AWS DynamoDB](https://aws.amazon.com/dynamodb/)
 - [OpenSearch](https://opensearch.org/)

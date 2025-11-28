@@ -15,7 +15,7 @@ import {
   getCurrentTimestamp,
   isConversationComplete
 } from '@landingchat/shared';
-import { getDefaultInterviewerConfig } from '@landingchat/config';
+import { getDefaultInterviewerConfig, getInterviewerConfig } from '@landingchat/config';
 
 import {
   createDynamoDBClient,
@@ -52,8 +52,11 @@ export async function handleChatRequest(
     const dynamoClient = createDynamoDBClient(env);
     const openSearchClient = createOpenSearchClient(env);
 
-    // Get configuration
-    const config = getDefaultInterviewerConfig();
+    // Get configuration (from environment variable or default)
+    const configName = env.INTERVIEWER_CONFIG_NAME || 'default';
+    const config = configName === 'default'
+      ? getDefaultInterviewerConfig()
+      : getInterviewerConfig(configName);
 
     // Load or create profile
     let profile = await getProfile(dynamoClient, env, sessionId);

@@ -64,7 +64,7 @@ This master script will guide you through the entire setup process with real AWS
 **Prerequisites:**
 - Docker and docker-compose installed
 - Node.js 18+ and pnpm installed
-- Anthropic API key (for LLM functionality)
+- Google Gemini API key (for LLM functionality) - get one at https://aistudio.google.com/app/apikey
 
 **Usage:**
 ```bash
@@ -73,10 +73,8 @@ This master script will guide you through the entire setup process with real AWS
 
 **What you get:**
 - DynamoDB Local at `http://localhost:8000`
-- OpenSearch Local at `https://localhost:9200`
-  - Username: `admin`
-  - Password: `Admin123!`
-- Pre-configured `.dev.vars` and `.env` files
+- OpenSearch Local at `http://localhost:9200` (no auth - security disabled for local dev)
+- Pre-configured `.dev.vars` and `.env` files (with Gemini API)
 - 3 sample apps seeded in catalog
 
 **Managing local services:**
@@ -107,7 +105,7 @@ This master script will guide you through the entire setup process with real AWS
 **Limitations:**
 - ⚠️ Data is ephemeral (lost on container restart unless using volumes)
 - ⚠️ Not suitable for production
-- ⚠️ Still requires Anthropic API key for LLM
+- ⚠️ Still requires Gemini API key for LLM
 
 **Estimated time:** 2-3 minutes
 

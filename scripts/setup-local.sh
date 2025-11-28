@@ -85,11 +85,11 @@ fi
 echo -e "${GREEN}All prerequisites met!${NC}"
 echo ""
 
-# Check for Anthropic API key
-echo -e "${YELLOW}Note:${NC} You'll need an Anthropic API key for the LLM functionality."
-echo "If you don't have one, you can get it from: https://console.anthropic.com/"
+# Check for Gemini API key
+echo -e "${YELLOW}Note:${NC} You'll need a Google Gemini API key for the LLM functionality."
+echo "If you don't have one, you can get it from: https://aistudio.google.com/app/apikey"
 echo ""
-read -p "Do you have an Anthropic API key? (y/n) " -n 1 -r
+read -p "Do you have a Gemini API key? (y/n) " -n 1 -r
 echo
 
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -134,16 +134,14 @@ services:
     container_name: landingchat-opensearch-local
     environment:
       - discovery.type=single-node
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Admin123!
-      - plugins.security.disabled=false
-      - DISABLE_INSTALL_DEMO_CONFIG=false
+      - DISABLE_SECURITY_PLUGIN=true
     ports:
       - "9200:9200"
       - "9600:9600"
     networks:
       - landingchat-local
     healthcheck:
-      test: ["CMD-SHELL", "curl -k -u admin:Admin123! https://localhost:9200/_cluster/health || exit 1"]
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 30
@@ -176,7 +174,7 @@ done
 
 echo -n "Waiting for OpenSearch..."
 for i in {1..60}; do
-    if curl -k -s -u admin:Admin123! https://localhost:9200/_cluster/health > /dev/null 2>&1; then
+    if curl -s http://localhost:9200/_cluster/health > /dev/null 2>&1; then
         echo " ready!"
         break
     fi
@@ -226,8 +224,7 @@ echo ""
 sleep 5
 
 echo "Creating apps catalog index..."
-curl -k -s -X PUT "https://localhost:9200/apps_catalog" \
-    -u admin:Admin123! \
+curl -s -X PUT "http://localhost:9200/apps_catalog" \
     -H 'Content-Type: application/json' \
     -d '{
       "mappings": {
@@ -251,8 +248,7 @@ curl -k -s -X PUT "https://localhost:9200/apps_catalog" \
     }' > /dev/null
 
 echo "Seeding sample apps..."
-curl -k -s -X POST "https://localhost:9200/_bulk" \
-    -u admin:Admin123! \
+curl -s -X POST "http://localhost:9200/_bulk" \
     -H 'Content-Type: application/x-ndjson' \
     --data-binary @- <<'EOFDATA' > /dev/null
 {"index":{"_index":"apps_catalog","_id":"app_invoice_automation_01"}}
@@ -270,26 +266,26 @@ echo ""
 echo -e "${YELLOW}Step 6: Configuring environment variables...${NC}"
 echo ""
 
-# Prompt for Anthropic API key
-read -p "Enter your Anthropic API key (or press Enter to skip): " ANTHROPIC_API_KEY
+# Prompt for Gemini API key
+read -p "Enter your Gemini API key (or press Enter to skip): " GEMINI_API_KEY
 
-if [ -z "$ANTHROPIC_API_KEY" ]; then
-    ANTHROPIC_API_KEY="sk-ant-REPLACE-WITH-YOUR-KEY"
+if [ -z "$GEMINI_API_KEY" ]; then
+    GEMINI_API_KEY="YOUR-GEMINI-API-KEY"
     echo -e "${YELLOW}⚠ Using placeholder API key - you'll need to update this later${NC}"
 fi
 
 # Create worker .dev.vars
 cat > packages/worker/.dev.vars <<EOF
-# LLM Configuration
-LLM_API_KEY=$ANTHROPIC_API_KEY
-LLM_BASE_MODEL=claude-3-haiku-20240307
-LLM_HEAVY_MODEL=claude-3-sonnet-20240229
-LLM_API_URL=https://api.anthropic.com/v1/messages
+# LLM Configuration (Gemini)
+LLM_API_KEY=$GEMINI_API_KEY
+LLM_BASE_MODEL=gemini-2.0-flash
+LLM_HEAVY_MODEL=gemini-1.5-pro
+LLM_API_URL=https://generativelanguage.googleapis.com/v1beta
 
-# OpenSearch Configuration (Local)
-OPENSEARCH_URL=https://localhost:9200
-OPENSEARCH_USERNAME=admin
-OPENSEARCH_PASSWORD=Admin123!
+# OpenSearch Configuration (Local - security disabled)
+OPENSEARCH_URL=http://localhost:9200
+OPENSEARCH_USERNAME=
+OPENSEARCH_PASSWORD=
 OPENSEARCH_APPS_INDEX=apps_catalog
 
 # AWS/DynamoDB Configuration (Local)
@@ -301,7 +297,7 @@ DDB_TABLE_MESSAGES=landingchat-messages-local
 DYNAMODB_ENDPOINT=http://localhost:8000
 
 # CORS Configuration
-ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174,http://localhost:3000
 EOF
 
 # Create frontend .env
@@ -333,7 +329,7 @@ echo ""
 
 echo -e "${CYAN}Services Running:${NC}"
 echo "  ✓ DynamoDB Local - http://localhost:8000"
-echo "  ✓ OpenSearch Local - https://localhost:9200"
+echo "  ✓ OpenSearch Local - http://localhost:9200 (no auth required)"
 echo ""
 
 echo -e "${CYAN}To Start Development:${NC}"
@@ -363,9 +359,10 @@ echo "  docker-compose -f docker-compose.local.yml down -v"
 echo "  ./scripts/setup-local.sh"
 echo ""
 
-if [ "$ANTHROPIC_API_KEY" == "sk-ant-REPLACE-WITH-YOUR-KEY" ]; then
-    echo -e "${YELLOW}⚠ IMPORTANT: Update your Anthropic API key${NC}"
+if [ "$GEMINI_API_KEY" == "YOUR-GEMINI-API-KEY" ]; then
+    echo -e "${YELLOW}⚠ IMPORTANT: Update your Gemini API key${NC}"
     echo "  Edit packages/worker/.dev.vars and replace the placeholder LLM_API_KEY"
+    echo "  Get a key from: https://aistudio.google.com/app/apikey"
     echo ""
 fi
 
@@ -375,7 +372,7 @@ echo "  # Check DynamoDB tables"
 echo "  aws dynamodb list-tables --endpoint-url http://localhost:8000 --region us-east-1"
 echo ""
 echo "  # Query OpenSearch"
-echo "  curl -k -u admin:Admin123! https://localhost:9200/apps_catalog/_search?pretty"
+echo "  curl http://localhost:9200/apps_catalog/_search?pretty"
 echo ""
 echo "  # View DynamoDB data"
 echo "  aws dynamodb scan --table-name landingchat-sessions-local --endpoint-url http://localhost:8000 --region us-east-1"

@@ -247,7 +247,12 @@ export interface WorkerEnv {
   // Prompt Configuration
   PROMPT_INTERVIEWER_ID?: string;
 
-  // Optional Configuration
+  // Configuration file name (without .json extension)
+  // Loads from packages/config/configs/{name}.json
+  // Defaults to 'default' if not specified
+  INTERVIEWER_CONFIG_NAME?: string;
+
+  // Optional Configuration (deprecated - use INTERVIEWER_CONFIG_NAME instead)
   CONFIG_RADAR_ID?: string;
   CONFIG_CHECKLIST_ID?: string;
 

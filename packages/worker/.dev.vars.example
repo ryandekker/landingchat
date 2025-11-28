@@ -9,6 +9,12 @@ LLM_BASE_MODEL=gemini-1.5-flash
 LLM_HEAVY_MODEL=gemini-1.5-pro
 LLM_API_URL=https://generativelanguage.googleapis.com/v1beta
 
+# Interviewer Configuration
+# Specify which config file to use (without .json extension)
+# Files are loaded from packages/config/configs/{name}.json
+# Defaults to 'default' if not specified
+# INTERVIEWER_CONFIG_NAME=example-custom
+
 # OpenSearch Configuration
 OPENSEARCH_URL=https://your-opensearch-endpoint.us-east-1.es.amazonaws.com
 OPENSEARCH_USERNAME=admin
